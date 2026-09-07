@@ -1,7 +1,7 @@
 # Datasheet for AgentDrift
 
 Following Gebru et al., *Datasheets for Datasets* (CACM 2021). Numbers are computed from the
-released files (`code/paper_analysis.py`).
+released files.
 
 ## Motivation
 
@@ -41,8 +41,8 @@ addresses contain a space inside the company domain (generator artifact, left as
 **Are relationships between instances made explicit?** Trajectories share task templates
 (250) and world objects (1,141); the `task` and `world` fields make this explicit.
 
-**Recommended splits?** The stratified split (folder layout) and the task-disjoint split
-(`splits/task_disjoint.json`). Neither holds out worlds; see 'World-identity leakage' in README.md.
+**Recommended splits?** The stratified split (`data/`) and the task-disjoint split
+(`data_taskdisjoint/`). Neither holds out worlds; see 'World-identity leakage' in README.md.
 
 **Errors, noise, redundancies?** Label correctness estimated at 99.6% on a 1,200-trajectory manual
 audit; residual errors are hijacked steps only loosely tied to the injected instruction. Template
@@ -90,11 +90,11 @@ localization, attempt-vs-success); evaluating runtime monitors.
 
 **Uses to avoid.** Drawing conclusions about the vulnerability of any deployed agent; training attack
 generators; attack-type classification; reporting results on the default splits without
-controlling for world-identity leakage (use `anonymize_world` or a world-held-out protocol).
+controlling for world-identity leakage (anonymize worlds or use a world-held-out protocol).
 
 ## Distribution
 
-GitHub, `https://github.com/Asif-0209/AgentDrift`, under CC BY 4.0 (data) and MIT (code), with
+GitHub, `https://github.com/Asif-0209/AgentDrift`, under CC BY 4.0, with
 Croissant metadata. No fees, export controls, or third-party restrictions.
 
 ## Maintenance

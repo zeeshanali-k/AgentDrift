@@ -21,32 +21,27 @@ Limitations section and the leakage note below before reporting results.
 | Tools | 103 (20 per domain, 23 for coding), closed vocabulary |
 | Length | 3 to 11 steps, mean 5.67 |
 | Generator | Llama-3.3-70B-Instruct (quantized) via an OpenAI-compatible gateway |
-| License | Data CC BY 4.0, code MIT |
+| License | CC BY 4.0 |
 
 ## Layout
 
 ```
-data/
-  train/ val/ test/        one JSON file per trajectory (stratified 70/15/15 split, seed 42)
-  dataset_stats.json       corpus-level counts
-splits/
-  stratified.json          id -> {train,val,test}  (identical to the folder layout above)
-  task_disjoint.json       id -> {train,val,test}  (no task template shared between parts: 9,081 / 1,733 / 1,722)
+data/                    stratified 70/15/15 split (seed 42), the split used in the paper
+  train/ val/ test/      one JSON file per trajectory: 8,775 / 1,880 / 1,881
+  train.jsonl val.jsonl test.jsonl   the same records, one per line (GitHub's folder view stops at 1,000 files)
+  dataset_stats.json     corpus-level counts
+data_taskdisjoint/       the same 12,536 trajectories re-split so that no task template is shared
+  train/ val/ test/      9,081 / 1,733 / 1,722
+  train.jsonl val.jsonl test.jsonl   the same records, one per line
 pools/
-  tool_pools.json          the closed tool vocabulary per domain
-  *_tasks.json             the 250 task templates (50 per domain) with expected tools and complexity
-  worlds/*_worlds.json     cached world pools (see 'World-identity leakage' for why the corpus has more worlds)
-  worlds_in_corpus.json    all 1,141 distinct world objects that occur in the corpus
-code/
-  data_loader.py           loader, world-grounded features, step rendering, world anonymization
-  baseline_surface.py      the surface-feature logistic-regression baseline from the paper
-  leakage_check.py         the world-identity lookup predictor from the paper
-  paper_analysis.py        every statistic in the paper, recomputed from data/
-  paper_figures.py         the paper's figures
+  tool_pools.json        the closed tool vocabulary per domain
+  *_tasks.json           the 250 task templates (50 per domain) with expected tools and complexity
+  worlds/*_worlds.json   cached world pools (see 'World-identity leakage' for why the corpus has more worlds)
+  worlds_in_corpus.json  all 1,141 distinct world objects that occur in the corpus
 docs/
-  DATASHEET.md             datasheet (Gebru et al.)
-  croissant.json           Croissant metadata
-CITATION.cff  CHANGELOG.md  LICENSE  LICENSE-CODE
+  DATASHEET.md           datasheet (Gebru et al.)
+  croissant.json         Croissant metadata
+CITATION.cff  CHANGELOG.md  LICENSE
 ```
 
 ## Record schema
@@ -103,41 +98,45 @@ legitimate content and no `I`/`F`.
 3. **Attempt vs. success**: report the flag rate on `failed_attack` at your operating point together
    with the attacked recall at that point.
 
-Report **recall per compliance pattern** (full / partial / delayed): the surface baseline recovers
-88% of full hijacks but only 8% of partial hijacks and 23% of delayed executions.
+Report **recall per compliance pattern** (full / partial / delayed): the paper's surface-feature
+baseline recovers 88% of full hijacks but only 8% of partial hijacks and 23% of delayed executions.
 
 ## Quick start
 
+No library is needed; every record is plain JSON.
+
 ```python
-import sys; sys.path.insert(0, "code")
-from data_loader import load_trajectories, world_known_sets, step_world_features, anonymize_world
+import glob, json, re
 
-train = load_trajectories("data", "train")                          # stratified split
-train = load_trajectories("data", "train", split="task_disjoint")   # task-held-out split
+EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 
-traj = anonymize_world(train[0])            # strongly recommended for text models, see below
-known, domains = world_known_sets(traj["world"])
+def load(part, root="data"):                       # root="data_taskdisjoint" for the other split
+    return [json.load(open(p)) for p in sorted(glob.glob(f"{root}/{part}/*.json"))]
+
+def known_sets(world):                              # addresses and domains the world defines
+    emails = {world["email"].lower()} | {c["email"].lower() for c in world["contacts"]}
+    return emails, {e.split("@")[-1] for e in emails}
+
+train = load("train")
+traj = train[0]
+known, domains = known_sets(traj["world"])
+y_traj = int(traj["category"] == "attacked")       # trajectory-level target
 for step in traj["steps"]:
-    feats = step_world_features(step, known, domains)   # world-grounded per-step features
-    label = step["label"]
-```
-
-```bash
-python code/baseline_surface.py --root data --split stratified   # P 0.778 / R 0.554 / F1 0.647
-python code/leakage_check.py    --root data --split stratified
-python code/paper_analysis.py                                    # every number in the paper
+    args = json.dumps(step["args"]).lower()
+    external = [m for m in EMAIL_RE.findall(args)
+                if m not in known and m.split("@")[-1] not in domains]
+    y_step = step["label"]                         # benign | injection_point | hijacked | failed_injection
 ```
 
 ## Splits
 
-* **Stratified split** (`data/{train,val,test}`, `splits/stratified.json`): 8,775 / 1,880 / 1,881,
-  stratified by (category, domain), seed 42. This is the split used throughout the paper.
-  All 250 task templates occur in all three parts.
-* **Task-disjoint split** (`splits/task_disjoint.json`): 9,081 / 1,733 / 1,722. Within each domain
-  the 50 task templates were shuffled (seed 42) and assigned whole to one part, so no task string is
-  shared between parts. Use it when the question is generalization to unseen tasks.
+* **Stratified split** (`data/`): 8,775 / 1,880 / 1,881, stratified by (category, domain), seed 42.
+  This is the split used throughout the paper. All 250 task templates occur in all three parts.
+* **Task-disjoint split** (`data_taskdisjoint/`): 9,081 / 1,733 / 1,722. Within each domain the 50
+  task templates were shuffled (seed 42) and assigned whole to one part, so no task string is shared
+  between parts. Use it when the question is generalization to unseen tasks.
 
-The trajectories are stored once; both manifests map every `id` to a part.
+Both folders contain the same 12,536 trajectories (same `id` values); only the assignment differs.
 
 ## Known regularities you must control for
 
@@ -148,9 +147,11 @@ Read the paper's Sections VIII and XI. In short:
   the same domain drew their own world pools concurrently. A lookup on the world object predicts the
   attacked class with 93 to 98% accuracy on the test part of either split (email is clean, 48%).
   Any model that reads names, company names, or addresses as text can learn category from identity.
-  **Either train and evaluate on `anonymize_world(traj)`** (keeps in-domain vs. external relations,
+  **Either anonymize the world before training** (replace person and company names with placeholders
+  and every address with an in-domain or out-of-domain placeholder, which keeps the relations and
   removes identity) **or use a world-held-out protocol** (assign parts by world object). State which
-  you used. `code/leakage_check.py` measures the leak.
+  you used. The leak is measured by looking up each test trajectory's world object among training
+  trajectories and predicting that world's majority category; the paper reports the numbers.
 * **Template concentration.** 28.9% of injected observations name an address in `ext-audit.com`;
   75% of hard negatives mention a $5,000 amount, an in-domain `audit@` address, or a transfer. Mask
   target domains and amounts at evaluation time if you want to rule out memorization.
@@ -197,4 +198,4 @@ See `CITATION.cff`.
 
 ## License
 
-Data (`data/`, `splits/`, `pools/`): [CC BY 4.0](LICENSE). Code (`code/`): MIT (`LICENSE-CODE`).
+[CC BY 4.0](LICENSE).
