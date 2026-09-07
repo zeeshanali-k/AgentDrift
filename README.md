@@ -191,7 +191,7 @@ See `CITATION.cff`.
   author = {Asif Pinjari and Mithun Paul Saint-Germain},
   year   = {2026},
   note   = {arXiv preprint},
-  url    = {https://github.com/asifpinjari/AgentDrift}
+  url    = {https://github.com/Asif-0209/AgentDrift}
 }
 ```
 

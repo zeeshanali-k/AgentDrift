@@ -94,7 +94,7 @@ controlling for world-identity leakage (use `anonymize_world` or a world-held-ou
 
 ## Distribution
 
-GitHub, `https://github.com/asifpinjari/AgentDrift`, under CC BY 4.0 (data) and MIT (code), with
+GitHub, `https://github.com/Asif-0209/AgentDrift`, under CC BY 4.0 (data) and MIT (code), with
 Croissant metadata. No fees, export controls, or third-party restrictions.
 
 ## Maintenance
