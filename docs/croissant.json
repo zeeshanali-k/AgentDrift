@@ -1,0 +1,121 @@
+{
+  "@context": {
+    "@language": "en",
+    "@vocab": "https://schema.org/",
+    "citeAs": "cr:citeAs",
+    "column": "cr:column",
+    "conformsTo": "dct:conformsTo",
+    "cr": "http://mlcommons.org/croissant/",
+    "data": {"@id": "cr:data", "@type": "@json"},
+    "dataType": {"@id": "cr:dataType", "@type": "@vocab"},
+    "dct": "http://purl.org/dc/terms/",
+    "extract": "cr:extract",
+    "field": "cr:field",
+    "fileProperty": "cr:fileProperty",
+    "fileObject": "cr:fileObject",
+    "fileSet": "cr:fileSet",
+    "format": "cr:format",
+    "includes": "cr:includes",
+    "isLiveDataset": "cr:isLiveDataset",
+    "jsonPath": "cr:jsonPath",
+    "key": "cr:key",
+    "md5": "cr:md5",
+    "parentField": "cr:parentField",
+    "path": "cr:path",
+    "recordSet": "cr:recordSet",
+    "references": "cr:references",
+    "regex": "cr:regex",
+    "repeated": "cr:repeated",
+    "replace": "cr:replace",
+    "sc": "https://schema.org/",
+    "separator": "cr:separator",
+    "source": "cr:source",
+    "subField": "cr:subField",
+    "transform": "cr:transform"
+  },
+  "@type": "sc:Dataset",
+  "conformsTo": "http://mlcommons.org/croissant/1.0",
+  "name": "AgentDrift",
+  "description": "12,536 synthetic LLM-agent tool-call trajectories over five domains (email, banking, web, coding, medical) with a prompt-injection label on every one of 71,024 steps: benign, injection_point, hijacked, or failed_injection. Four trajectory categories (benign, attacked, failed_attack, hard_negative), three compliance patterns, closed tool vocabulary, per-trajectory world context. Two split manifests (stratified, task-disjoint).",
+  "url": "https://github.com/asifpinjari/AgentDrift",
+  "license": "https://creativecommons.org/licenses/by/4.0/",
+  "version": "1.0",
+  "datePublished": "2026-09-07",
+  "creator": [
+    {"@type": "sc:Person", "name": "Asif Pinjari", "affiliation": "Northern Arizona University"},
+    {"@type": "sc:Person", "name": "Mithun Paul Saint-Germain", "affiliation": "Northern Arizona University"}
+  ],
+  "citeAs": "Pinjari, A. and Saint-Germain, M. P. (2026). AgentDrift: A Step-Labeled Benchmark of Injection-Hijacked LLM Agent Trajectories. arXiv preprint.",
+  "keywords": ["LLM agents", "indirect prompt injection", "benchmark", "step-level labels", "tool-call trajectories", "AI security"],
+  "distribution": [
+    {
+      "@type": "cr:FileObject",
+      "@id": "github-repository",
+      "name": "github-repository",
+      "description": "AgentDrift repository on GitHub.",
+      "contentUrl": "https://github.com/asifpinjari/AgentDrift",
+      "encodingFormat": "git+https",
+      "sha256": "main"
+    },
+    {
+      "@type": "cr:FileSet",
+      "@id": "trajectory-files",
+      "name": "trajectory-files",
+      "description": "One JSON file per trajectory, under data/train, data/val, data/test (stratified split).",
+      "containedIn": {"@id": "github-repository"},
+      "encodingFormat": "application/json",
+      "includes": "data/*/*.json"
+    },
+    {
+      "@type": "cr:FileObject",
+      "@id": "task-disjoint-manifest",
+      "name": "task-disjoint-manifest",
+      "description": "Mapping from trajectory id to train/val/test for the task-disjoint split.",
+      "containedIn": {"@id": "github-repository"},
+      "contentUrl": "splits/task_disjoint.json",
+      "encodingFormat": "application/json"
+    }
+  ],
+  "recordSet": [
+    {
+      "@type": "cr:RecordSet",
+      "@id": "trajectories",
+      "name": "trajectories",
+      "description": "One record per trajectory. Steps are a repeated sub-record with a label on every step.",
+      "key": {"@id": "trajectories/id"},
+      "field": [
+        {"@type": "cr:Field", "@id": "trajectories/id", "name": "id", "dataType": "sc:Text",
+         "source": {"fileSet": {"@id": "trajectory-files"}, "extract": {"jsonPath": "$.id"}}},
+        {"@type": "cr:Field", "@id": "trajectories/agent", "name": "agent", "description": "Domain: email, banking, web, coding, medical.", "dataType": "sc:Text",
+         "source": {"fileSet": {"@id": "trajectory-files"}, "extract": {"jsonPath": "$.agent"}}},
+        {"@type": "cr:Field", "@id": "trajectories/category", "name": "category", "description": "benign, attacked, failed_attack, hard_negative.", "dataType": "sc:Text",
+         "source": {"fileSet": {"@id": "trajectory-files"}, "extract": {"jsonPath": "$.category"}}},
+        {"@type": "cr:Field", "@id": "trajectories/source_category", "name": "source_category", "description": "benign, attacked_full, attacked_partial, attacked_delayed, failed_attack, hard_negative.", "dataType": "sc:Text",
+         "source": {"fileSet": {"@id": "trajectory-files"}, "extract": {"jsonPath": "$.source_category"}}},
+        {"@type": "cr:Field", "@id": "trajectories/task", "name": "task", "description": "User instruction.", "dataType": "sc:Text",
+         "source": {"fileSet": {"@id": "trajectory-files"}, "extract": {"jsonPath": "$.task"}}},
+        {"@type": "cr:Field", "@id": "trajectories/world", "name": "world", "description": "World object: user, email, company, date, contacts[] (name, email, relation).", "dataType": "sc:Text",
+         "source": {"fileSet": {"@id": "trajectory-files"}, "extract": {"jsonPath": "$.world"}}},
+        {"@type": "cr:Field", "@id": "trajectories/attack_type", "name": "attack_type", "description": "Generation metadata for attacked and failed_attack records; not a certified classification target.", "dataType": "sc:Text",
+         "source": {"fileSet": {"@id": "trajectory-files"}, "extract": {"jsonPath": "$.attack_type"}}},
+        {"@type": "cr:Field", "@id": "trajectories/compliance", "name": "compliance", "description": "full_hijack, partial_hijack, delayed_execution, resisted.", "dataType": "sc:Text",
+         "source": {"fileSet": {"@id": "trajectory-files"}, "extract": {"jsonPath": "$.compliance"}}},
+        {"@type": "cr:Field", "@id": "trajectories/split", "name": "split", "description": "Part of the stratified split: train, val, test.", "dataType": "sc:Text",
+         "source": {"fileSet": {"@id": "trajectory-files"}, "extract": {"jsonPath": "$.split"}}},
+        {"@type": "cr:Field", "@id": "trajectories/steps", "name": "steps", "description": "Ordered steps.", "repeated": true,
+         "subField": [
+           {"@type": "cr:Field", "@id": "trajectories/steps/thought", "name": "thought", "dataType": "sc:Text",
+            "source": {"fileSet": {"@id": "trajectory-files"}, "extract": {"jsonPath": "$.steps[*].thought"}}},
+           {"@type": "cr:Field", "@id": "trajectories/steps/tool", "name": "tool", "description": "Tool name from the domain's closed pool.", "dataType": "sc:Text",
+            "source": {"fileSet": {"@id": "trajectory-files"}, "extract": {"jsonPath": "$.steps[*].tool"}}},
+           {"@type": "cr:Field", "@id": "trajectories/steps/args", "name": "args", "dataType": "sc:Text",
+            "source": {"fileSet": {"@id": "trajectory-files"}, "extract": {"jsonPath": "$.steps[*].args"}}},
+           {"@type": "cr:Field", "@id": "trajectories/steps/obs", "name": "obs", "description": "Observation returned by the tool; the channel through which injections enter.", "dataType": "sc:Text",
+            "source": {"fileSet": {"@id": "trajectory-files"}, "extract": {"jsonPath": "$.steps[*].obs"}}},
+           {"@type": "cr:Field", "@id": "trajectories/steps/label", "name": "label", "description": "benign, injection_point, hijacked, failed_injection.", "dataType": "sc:Text",
+            "source": {"fileSet": {"@id": "trajectory-files"}, "extract": {"jsonPath": "$.steps[*].label"}}}
+         ]}
+      ]
+    }
+  ]
+}
