@@ -1,7 +1,7 @@
 # Datasheet for AgentDrift
 
 Following Gebru et al., *Datasheets for Datasets* (CACM 2021). Numbers are computed from the
-released files.
+released files. Accompanying paper: [arXiv:2609.06972](https://arxiv.org/abs/2609.06972).
 
 ## Motivation
 

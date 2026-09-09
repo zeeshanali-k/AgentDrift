@@ -8,9 +8,10 @@ four labels: `benign`, `injection_point`, `hijacked`, or `failed_injection`. It 
 training and evaluating detectors that read a trajectory and decide whether an indirect prompt
 injection succeeded, **where it entered**, and **which steps it corrupted**.
 
-Paper: *AgentDrift: A Step-Labeled Benchmark of Injection-Hijacked LLM Agent Trajectories*
-(Pinjari and Saint-Germain, Northern Arizona University, 2026). Please read the paper's
-Limitations section and the leakage note below before reporting results.
+Paper: *AgentDrift: A Step-Labeled Benchmark of Injection-Hijacked LLM Agent Trajectories*,
+[arXiv:2609.06972](https://arxiv.org/abs/2609.06972) (Pinjari and Saint-Germain, Northern Arizona
+University, 2026). Please read the paper's Limitations section and the leakage note below
+before reporting results.
 
 | | |
 |---|---|
@@ -188,11 +189,14 @@ See `CITATION.cff`.
 
 ```bibtex
 @misc{pinjari2026agentdrift,
-  title  = {AgentDrift: A Step-Labeled Benchmark of Injection-Hijacked LLM Agent Trajectories},
-  author = {Asif Pinjari and Mithun Paul Saint-Germain},
-  year   = {2026},
-  note   = {arXiv preprint},
-  url    = {https://github.com/Asif-0209/AgentDrift}
+  title         = {AgentDrift: A Step-Labeled Benchmark of Injection-Hijacked LLM Agent Trajectories},
+  author        = {Asif Pinjari and Mithun Paul Saint-Germain},
+  year          = {2026},
+  eprint        = {2609.06972},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CR},
+  doi           = {10.48550/arXiv.2609.06972},
+  url           = {https://arxiv.org/abs/2609.06972}
 }
 ```
 
