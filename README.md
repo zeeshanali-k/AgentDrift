@@ -200,6 +200,25 @@ See `CITATION.cff`.
 }
 ```
 
+## Companion detector paper
+
+DriftNet, a dual-head trajectory Transformer trained on this benchmark's task-disjoint split, jointly
+classifies each trajectory and labels every step (injection point, hijacked span, resisted injections):
+[arXiv:2609.10892](https://arxiv.org/abs/2609.10892).
+
+```bibtex
+@misc{pinjari2026driftnet,
+  title         = {DriftNet: A Dual-Head Trajectory Transformer for Detecting and Localizing Prompt Injection in LLM Agents},
+  author        = {Asif Pinjari and Mithun Paul Saint-Germain},
+  year          = {2026},
+  eprint        = {2609.10892},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CR},
+  doi           = {10.48550/arXiv.2609.10892},
+  url           = {https://arxiv.org/abs/2609.10892}
+}
+```
+
 ## License
 
 [CC BY 4.0](LICENSE).
