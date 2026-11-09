@@ -3,444 +3,471 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DriftNet Live — Real-Time Trajectory Prefix Monitor</title>
+  <title>DriftNet Live — Agent Security Monitor</title>
   <style>
     :root {
-      --bg: #0f172a;
-      --panel: #1e293b;
-      --panel-alt: #263349;
-      --border: #334155;
-      --text: #f1f5f9;
-      --muted: #94a3b8;
-      --accent: #38bdf8;
-      --benign: #10b981;
-      --benign-bg: rgba(16, 185, 129, 0.14);
-      --inj: #f59e0b;
-      --inj-bg: rgba(245, 158, 11, 0.16);
-      --hijack: #ef4444;
-      --hijack-bg: rgba(239, 68, 68, 0.16);
-      --failed: #a855f7;
-      --failed-bg: rgba(168, 85, 247, 0.16);
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-muted: #f1f5f9;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+
+      --safe: #16a34a;
+      --safe-bg: #f0fdf4;
+      --safe-border: #bbf7d0;
+
+      --entry: #d97706;
+      --entry-bg: #fffbeb;
+      --entry-border: #fde68a;
+
+      --hijack: #dc2626;
+      --hijack-bg: #fef2f2;
+      --hijack-border: #fecaca;
+
+      --resisted: #7c3aed;
+      --resisted-bg: #f5f3ff;
+      --resisted-border: #ddd6fe;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.5;
+      line-height: 1.55;
     }
 
-    header {
-      background: #0b1120;
+    /* Top Navigation Bar */
+    .navbar {
+      background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 14px 24px;
+      padding: 0 32px;
+      height: 64px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
-    .brand h1 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #fff;
+    .brand {
       display: flex;
       align-items: center;
       gap: 10px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text);
     }
-    .brand h1 span.badge {
-      background: rgba(56, 189, 248, 0.15);
-      color: var(--accent);
-      border: 1px solid rgba(56, 189, 248, 0.4);
+    .brand-tag {
       font-size: 0.75rem;
-      padding: 2px 8px;
-      border-radius: 999px;
       font-weight: 600;
-    }
-    .brand p {
-      font-size: 0.82rem;
-      color: var(--muted);
-      margin-top: 2px;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 3px 10px;
+      border-radius: 999px;
     }
 
-    .nav-tabs {
+    .stepper-nav {
       display: flex;
-      gap: 8px;
+      gap: 6px;
     }
-    .tab-btn {
-      background: var(--panel);
-      color: var(--muted);
+    .nav-step {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-secondary);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .nav-step:hover {
+      background: var(--surface-muted);
+      color: var(--text);
+    }
+    .nav-step.active {
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    /* Main Container */
+    .screen {
+      display: none;
+      max-width: 960px;
+      margin: 32px auto;
+      padding: 0 24px 64px;
+    }
+    .screen.active {
+      display: block;
+    }
+
+    .screen-header {
+      margin-bottom: 24px;
+    }
+    .screen-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .screen-header p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      margin-top: 4px;
+    }
+
+    /* Cards & Buttons */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      color: var(--text);
       border: 1px solid var(--border);
       padding: 8px 16px;
       border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
       font-size: 0.88rem;
-      transition: all 0.15s;
-    }
-    .tab-btn.active {
-      background: var(--accent);
-      color: #0b1120;
-      border-color: var(--accent);
-    }
-
-    .layout {
-      display: grid;
-      grid-template-columns: 340px 1fr;
-      min-height: calc(100vh - 68px);
-    }
-    .sidebar {
-      background: #131c2e;
-      border-right: 1px solid var(--border);
-      padding: 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      overflow-y: auto;
-      max-height: calc(100vh - 68px);
-    }
-    .main-content {
-      padding: 20px 26px;
-      overflow-y: auto;
-      max-height: calc(100vh - 68px);
-    }
-
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px 16px;
-    }
-    .card-title {
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--muted);
-      font-weight: 700;
-      margin-bottom: 10px;
-    }
-
-    .preset-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .preset-btn {
-      text-align: left;
-      background: var(--panel-alt);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 8px 10px;
-      border-radius: 7px;
-      font-size: 0.82rem;
-      cursor: pointer;
-      transition: all 0.15s;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .preset-btn:hover, .preset-btn.active {
-      border-color: var(--accent);
-      background: rgba(56, 189, 248, 0.12);
-    }
-    .preset-btn .meta-tag {
-      font-size: 0.7rem;
-      color: var(--muted);
-      font-family: monospace;
-    }
-
-    .filter-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    select, input[type="text"], textarea {
-      width: 100%;
-      background: #0f172a;
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 7px 10px;
-      font-size: 0.84rem;
-    }
-
-    .world-box {
-      font-size: 0.82rem;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .world-row strong { color: #cbd5e1; }
-    .contact-pill {
-      display: inline-block;
-      background: #0f172a;
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      padding: 2px 7px;
-      margin: 2px 4px 2px 0;
-      font-size: 0.75rem;
-      font-family: monospace;
-    }
-
-    /* Controls Bar */
-    .stream-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 16px;
-      margin-bottom: 16px;
-    }
-    .btn-group {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .btn {
-      background: var(--panel-alt);
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 7px 13px;
-      border-radius: 7px;
-      font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.15s;
     }
     .btn:hover:not(:disabled) {
-      border-color: var(--accent);
-      color: var(--accent);
+      background: var(--surface-muted);
     }
     .btn:disabled {
-      opacity: 0.4;
+      opacity: 0.45;
       cursor: not-allowed;
     }
     .btn-primary {
-      background: var(--accent);
-      color: #0f172a;
-      border-color: var(--accent);
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
     }
     .btn-primary:hover:not(:disabled) {
-      background: #7dd3fc;
-      color: #0f172a;
+      background: var(--primary-hover);
+    }
+    .btn-ghost {
+      background: transparent;
+      border: none;
+      color: var(--primary);
+      padding: 4px 8px;
+      font-size: 0.82rem;
+    }
+    .btn-ghost:hover {
+      background: var(--primary-light);
     }
 
-    /* Dual-Head Verdict Banner */
-    .verdict-grid {
+    /* Screen 1: Scenario Grid */
+    .scenario-grid {
       display: grid;
-      grid-template-columns: 300px 1fr;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 16px;
-      margin-bottom: 16px;
+      margin-bottom: 24px;
     }
-    .gauge-box {
+    .scenario-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      gap: 14px;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
     }
-    .prob-big {
-      font-size: 2rem;
-      font-weight: 800;
-      font-family: monospace;
+    .scenario-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.08);
     }
-    .prob-bar-bg {
-      height: 10px;
-      background: #0f172a;
-      border-radius: 999px;
-      overflow: hidden;
-      margin: 8px 0;
-      border: 1px solid var(--border);
+    .scenario-card.selected {
+      border: 2px solid var(--primary);
+      background: #f8fbff;
     }
-    .prob-bar-fill {
-      height: 100%;
-      transition: width 0.25s ease, background 0.25s ease;
-    }
-
-    .triage-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-    }
-    .triage-stat {
-      background: #0f172a;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 12px;
-    }
-    .triage-stat .lbl {
+    .scenario-type {
+      display: inline-block;
       font-size: 0.73rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      font-weight: 600;
-    }
-    .triage-stat .val {
-      font-size: 1.02rem;
       font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 3px 9px;
+      border-radius: 999px;
+    }
+    .scenario-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+    .scenario-desc {
+      font-size: 0.86rem;
+      color: var(--text-secondary);
       margin-top: 4px;
-      font-family: monospace;
     }
 
-    /* Interceptor Alert */
-    .interceptor-alert {
+    /* Collapsible Toggle Box */
+    .toggle-section {
+      margin-top: 16px;
+      border: 1px solid var(--border);
       border-radius: 10px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .toggle-header {
+      width: 100%;
       padding: 12px 16px;
-      margin-bottom: 16px;
-      display: none;
-      align-items: center;
+      background: var(--surface-muted);
+      border: none;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      display: flex;
       justify-content: space-between;
-      gap: 12px;
+      align-items: center;
+      cursor: pointer;
     }
-    .interceptor-alert.danger {
-      display: flex;
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid var(--hijack);
+    .toggle-header:hover {
+      color: var(--text);
     }
-    .interceptor-alert.resisted {
-      display: flex;
-      background: rgba(168, 85, 247, 0.15);
-      border: 1px solid var(--failed);
+    .toggle-body {
+      display: none;
+      padding: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .toggle-body.open {
+      display: block;
     }
 
-    /* Step Cards */
-    .steps-container {
+    /* Screen 2: Live Monitor */
+    .task-banner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
       display: flex;
-      flex-direction: column;
-      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
     }
-    .step-card {
-      background: var(--panel);
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      padding: 14px 16px;
-      transition: all 0.2s;
+    .task-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
     }
-    .step-card.future {
-      opacity: 0.35;
-      border-style: dashed;
+    .task-prompt {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-top: 2px;
     }
-    .step-card.pred-benign { border-left: 6px solid var(--benign); }
-    .step-card.pred-injection_point { border-left: 6px solid var(--inj); background: rgba(245, 158, 11, 0.06); }
-    .step-card.pred-hijacked { border-left: 6px solid var(--hijack); background: rgba(239, 68, 68, 0.08); }
-    .step-card.pred-failed_injection { border-left: 6px solid var(--failed); background: rgba(168, 85, 247, 0.08); }
 
-    .step-header {
+    .controls-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 18px;
+      margin-bottom: 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 10px;
+      gap: 12px;
     }
-    .step-title {
+
+    /* Live Status Banner */
+    .status-banner {
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .status-banner.safe {
+      background: var(--safe-bg);
+      border: 1px solid var(--safe-border);
+      color: #14532d;
+    }
+    .status-banner.hijacked {
+      background: var(--hijack-bg);
+      border: 1px solid var(--hijack-border);
+      color: #7f1d1d;
+    }
+    .status-banner.resisted {
+      background: var(--resisted-bg);
+      border: 1px solid var(--resisted-border);
+      color: #4c1d95;
+    }
+
+    /* Step Timeline */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .step-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 5px solid var(--safe);
+      border-radius: 10px;
+      padding: 14px 18px;
+      transition: all 0.15s;
+    }
+    .step-item.pred-injection_point {
+      border-left-color: var(--entry);
+      background: #fffdf7;
+    }
+    .step-item.pred-hijacked {
+      border-left-color: var(--hijack);
+      background: #fffafa;
+    }
+    .step-item.pred-failed_injection {
+      border-left-color: var(--resisted);
+      background: #fcfaff;
+    }
+    .step-item.upcoming {
+      border-left-color: var(--border);
+      opacity: 0.45;
+      background: var(--surface-muted);
+    }
+
+    .step-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .step-title-group {
       display: flex;
       align-items: center;
       gap: 10px;
-      font-weight: 700;
-      font-size: 0.95rem;
     }
-    .tool-pill {
-      background: #0f172a;
-      color: var(--accent);
-      border: 1px solid rgba(56, 189, 248, 0.35);
-      font-family: monospace;
-      padding: 2px 8px;
-      border-radius: 5px;
+    .step-num {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+    .tool-chip {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 0.82rem;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      padding: 2px 8px;
+      border-radius: 6px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .step-thought {
+      margin-top: 8px;
+      font-size: 0.92rem;
+      color: var(--text-secondary);
     }
 
-    .label-badge {
-      padding: 3px 10px;
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 11px;
       border-radius: 999px;
       font-size: 0.76rem;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
     }
-    .lbl-benign { background: var(--benign-bg); color: var(--benign); border: 1px solid var(--benign); }
-    .lbl-injection_point { background: var(--inj-bg); color: var(--inj); border: 1px solid var(--inj); }
-    .lbl-hijacked { background: var(--hijack-bg); color: var(--hijack); border: 1px solid var(--hijack); }
-    .lbl-failed_injection { background: var(--failed-bg); color: var(--failed); border: 1px solid var(--failed); }
+    .pill-benign { background: var(--safe-bg); color: var(--safe); border: 1px solid var(--safe-border); }
+    .pill-injection_point { background: var(--entry-bg); color: var(--entry); border: 1px solid var(--entry-border); }
+    .pill-hijacked { background: var(--hijack-bg); color: var(--hijack); border: 1px solid var(--hijack-border); }
+    .pill-failed_injection { background: var(--resisted-bg); color: var(--resisted); border: 1px solid var(--resisted-border); }
 
-    .step-body {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 6px;
-      font-size: 0.85rem;
+    /* Step Details Drawer */
+    .step-details {
+      display: none;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border);
+      font-size: 0.84rem;
     }
-    .field-row {
-      background: #0f172a;
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: 1px solid #1e293b;
+    .step-details.open {
+      display: block;
     }
-    .field-key {
-      color: var(--muted);
-      font-weight: 700;
-      font-size: 0.74rem;
-      text-transform: uppercase;
-      margin-right: 6px;
-    }
-    .field-val {
+    .detail-box {
+      background: var(--surface-muted);
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.8rem;
       word-break: break-word;
     }
 
-    .step-footer {
-      margin-top: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-      font-size: 0.76rem;
-      color: var(--muted);
+    /* Screen 3: Triage Report */
+    .triage-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
     }
-    .wf-pills span {
-      display: inline-block;
-      padding: 2px 7px;
-      border-radius: 4px;
-      background: #0f172a;
+    .triage-card {
+      background: var(--surface);
       border: 1px solid var(--border);
-      margin-right: 5px;
-      font-family: monospace;
+      border-radius: 12px;
+      padding: 20px;
     }
-    .wf-pills span.active-flag {
-      background: rgba(239, 68, 68, 0.2);
-      color: #fca5a5;
-      border-color: var(--hijack);
-      font-weight: 700;
+    .triage-card h3 {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+    }
+    .triage-card .big-answer {
+      font-size: 1.35rem;
+      font-weight: 800;
+      margin-bottom: 6px;
     }
 
-    /* Benchmark Tab */
-    .bench-grid {
+    /* Screen 4: Benchmark */
+    .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 14px;
-      margin-bottom: 20px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
     }
-    .metric-card {
-      background: var(--panel);
+    .kpi-card {
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
+      border-radius: 12px;
+      padding: 20px;
     }
-    .metric-card .m-val {
-      font-size: 1.8rem;
+    .kpi-val {
+      font-size: 1.9rem;
       font-weight: 800;
-      color: var(--accent);
-      font-family: monospace;
+      color: var(--primary);
       margin: 4px 0;
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.86rem;
-      margin-top: 8px;
+      font-size: 0.88rem;
     }
     th, td {
       padding: 10px 12px;
@@ -448,247 +475,268 @@
       text-align: left;
     }
     th {
-      color: var(--muted);
+      background: var(--surface-muted);
+      color: var(--text-secondary);
       font-size: 0.76rem;
       text-transform: uppercase;
-      background: #0f172a;
     }
 
-    /* Edit Modal */
+    select, input, textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.88rem;
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    /* Modal */
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.7);
+      background: rgba(15, 23, 42, 0.45);
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 100;
     }
     .modal {
-      background: var(--panel);
-      border: 1px solid var(--border);
+      background: var(--surface);
       border-radius: 12px;
-      width: 90%;
-      max-width: 640px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+      width: 92%;
+      max-width: 560px;
+      padding: 24px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
     }
   </style>
 </head>
 <body>
-  <header>
+
+  <!-- TOP NAVIGATION (4 Connected Screens) -->
+  <nav class="navbar">
     <div class="brand">
-      <h1>
-        🛡️ DriftNet Live
-        <span class="badge">Real-Time Prefix Monitor &amp; Triage</span>
-      </h1>
-      <p>Dual-Head Trajectory Transformer (&lt;2M Params) • Online Prefix Scoring &amp; Rollback Localization (Section XI)</p>
+      <span>🛡️ DriftNet Live</span>
+      <span class="brand-tag">Real-Time Agent Monitor</span>
     </div>
-    <div class="nav-tabs">
-      <button class="tab-btn active" onclick="switchTab('simulator')">▶ Live Streaming Simulator</button>
-      <button class="tab-btn" onclick="switchTab('benchmark')">📊 Held-Out Benchmark Results (1,722 Test Traces)</button>
+    <div class="stepper-nav">
+      <button class="nav-step active" id="nav-scenarios" onclick="goToScreen('scenarios')">1. Pick Scenario</button>
+      <button class="nav-step" id="nav-monitor" onclick="goToScreen('monitor')">2. Live Monitor</button>
+      <button class="nav-step" id="nav-triage" onclick="goToScreen('triage')">3. Triage Report</button>
+      <button class="nav-step" id="nav-benchmark" onclick="goToScreen('benchmark')">4. Benchmark Results</button>
     </div>
-  </header>
+  </nav>
 
-  <!-- TAB 1: LIVE STREAMING SIMULATOR -->
-  <div id="tab-simulator" class="layout">
-    <aside class="sidebar">
-      <div class="card">
-        <div class="card-title">⚡ 1-Click Demo Scenarios</div>
-        <div id="preset-list" class="preset-list">Loading presets...</div>
-      </div>
+  <!-- =================================================================== -->
+  <!-- SCREEN 1: PICK SCENARIO                                             -->
+  <!-- =================================================================== -->
+  <section id="screen-scenarios" class="screen active">
+    <div class="screen-header">
+      <h1>Choose an Agent Scenario</h1>
+      <p>Select a pre-configured scenario below to watch how DriftNet monitors an AI agent step-by-step.</p>
+    </div>
 
-      <div class="card">
-        <div class="card-title">🔍 Browse Held-Out Test Set</div>
-        <div class="filter-group">
-          <select id="filter-domain" onchange="loadTrajectoryList()">
-            <option value="all">All Domains (5)</option>
-            <option value="banking">Banking</option>
-            <option value="email">Email</option>
-            <option value="web">Web</option>
-            <option value="coding">Coding</option>
-            <option value="medical">Medical</option>
-          </select>
-          <select id="filter-category" onchange="loadTrajectoryList()">
-            <option value="all">All Categories (4)</option>
-            <option value="attacked">Attacked (Compromised)</option>
-            <option value="failed_attack">Failed Attack (Resisted)</option>
-            <option value="hard_negative">Hard Negative (Suspicious Benign)</option>
-            <option value="benign">Benign</option>
-          </select>
-          <select id="filter-compliance" onchange="loadTrajectoryList()">
-            <option value="all">All Compliance Patterns</option>
-            <option value="full_hijack">Full Hijack (B+ I H+)</option>
-            <option value="partial_hijack">Partial Hijack (B+ I H B+)</option>
-            <option value="delayed_execution">Delayed Execution (B+ I B+ H B+)</option>
-            <option value="resisted">Resisted (B+ F B+)</option>
-          </select>
-          <select id="traj-select" onchange="selectTrajectory(this.value)"></select>
-        </div>
-      </div>
+    <div id="scenario-cards-grid" class="scenario-grid">
+      Loading scenarios...
+    </div>
 
-      <div class="card">
-        <div class="card-title">🌍 World Context (W) — Grounding</div>
-        <div id="world-context-box" class="world-box">Select a trajectory...</div>
-      </div>
-    </aside>
-
-    <main class="main-content">
-      <!-- Task Info Card -->
-      <div class="card" style="margin-bottom: 14px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+    <!-- Toggleable Advanced Search over all 1,722 Test Trajectories -->
+    <div class="toggle-section">
+      <button class="toggle-header" onclick="toggleSection('adv-browser')">
+        <span>🔍 Browse All 1,722 Held-Out Test Trajectories (Optional)</span>
+        <span id="adv-browser-icon">＋ Expand</span>
+      </button>
+      <div id="adv-browser" class="toggle-body">
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; margin-bottom:12px;">
           <div>
-            <span class="card-title" style="margin:0;">USER TASK PROMPT</span>
-            <span id="traj-meta-badges" style="margin-left:10px; font-size:0.78rem; color:var(--muted); font-family:monospace;"></span>
+            <label style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Domain</label>
+            <select id="filter-domain" onchange="loadTrajectoryList()">
+              <option value="all">All Domains</option>
+              <option value="banking">Banking</option>
+              <option value="email">Email</option>
+              <option value="web">Web</option>
+              <option value="coding">Coding</option>
+              <option value="medical">Medical</option>
+            </select>
           </div>
-          <button class="btn" style="font-size:0.76rem; padding:4px 10px;" onclick="resetCustomEdits()">↺ Reset Edits</button>
-        </div>
-        <div id="task-text" style="font-size:0.95rem; font-weight:600; margin-top:6px; color:#e2e8f0;">Loading...</div>
-      </div>
-
-      <!-- Streaming Controls -->
-      <div class="stream-bar">
-        <div class="btn-group">
-          <button class="btn" id="btn-start" onclick="setPrefixLength(1)">⏮ Step 1</button>
-          <button class="btn" id="btn-prev" onclick="stepDelta(-1)">◀ Prev</button>
-          <button class="btn btn-primary" id="btn-next" onclick="stepDelta(1)">Next Step (t+1) ▶</button>
-          <button class="btn" id="btn-play" onclick="toggleAutoPlay()">⏩ Auto-Stream</button>
-          <button class="btn" id="btn-end" onclick="setPrefixLength(999)">⏭ Full Trace (T)</button>
-        </div>
-        <div style="display:flex; align-items:center; gap:14px;">
-          <label style="font-size:0.82rem; display:flex; align-items:center; gap:6px; cursor:pointer;">
-            <input type="checkbox" id="chk-autohalt" checked />
-            Auto-Halt on Hijack
-          </label>
-          <div id="prefix-indicator" style="font-family:monospace; font-weight:700; font-size:0.9rem; color:var(--accent);">
-            Prefix: 1 / 1
+          <div>
+            <label style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Category</label>
+            <select id="filter-category" onchange="loadTrajectoryList()">
+              <option value="all">All Categories</option>
+              <option value="attacked">Attacked (Compromised)</option>
+              <option value="failed_attack">Resisted Attack</option>
+              <option value="hard_negative">Hard Negative</option>
+              <option value="benign">Benign</option>
+            </select>
           </div>
-        </div>
-      </div>
-
-      <!-- Interceptor Alert Banner -->
-      <div id="interceptor-banner" class="interceptor-alert"></div>
-
-      <!-- Dual-Head Live Output -->
-      <div class="verdict-grid">
-        <div class="card gauge-box">
-          <div class="card-title">HEAD 1: ONLINE TRAJECTORY VERDICT (ŷ_t)</div>
-          <div style="display:flex; justify-content:space-between; align-items:baseline;">
-            <div id="head1-prob" class="prob-big">0.0%</div>
-            <div id="head1-badge" class="label-badge lbl-benign">SAFE</div>
-          </div>
-          <div class="prob-bar-bg">
-            <div id="head1-bar" class="prob-bar-fill" style="width:0%; background:var(--benign);"></div>
-          </div>
-          <div style="font-size:0.75rem; color:var(--muted);">
-            Evaluated only on observed prefix steps <code>x[1..t]</code>
+          <div>
+            <label style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Pattern</label>
+            <select id="filter-compliance" onchange="loadTrajectoryList()">
+              <option value="all">All Patterns</option>
+              <option value="full_hijack">Full Hijack</option>
+              <option value="partial_hijack">Partial Hijack</option>
+              <option value="delayed_execution">Delayed Execution</option>
+              <option value="resisted">Resisted</option>
+            </select>
           </div>
         </div>
-
-        <div class="card">
-          <div class="card-title">HEAD 2: REAL-TIME TRIAGE &amp; LOCALIZATION REPORT (z_1..t)</div>
-          <div class="triage-grid">
-            <div class="triage-stat">
-              <div class="lbl">🟠 Entry Point (I)</div>
-              <div class="val" id="triage-inj" style="color:var(--inj);">None</div>
-              <div style="font-size:0.72rem; color:var(--muted);">Source to distrust</div>
-            </div>
-            <div class="triage-stat">
-              <div class="lbl">🔴 Hijacked Span (H)</div>
-              <div class="val" id="triage-hij" style="color:var(--hijack);">None</div>
-              <div style="font-size:0.72rem; color:var(--muted);">Actions to roll back</div>
-            </div>
-            <div class="triage-stat">
-              <div class="lbl">🟣 Resisted Poison (F)</div>
-              <div class="val" id="triage-fail" style="color:var(--failed);">None</div>
-              <div style="font-size:0.72rem; color:var(--muted);">Attempt ignored</div>
-            </div>
-            <div class="triage-stat">
-              <div class="lbl">🛡️ Downstream Saved</div>
-              <div class="val" id="triage-saved" style="color:var(--accent);">0 steps</div>
-              <div style="font-size:0.72rem; color:var(--muted);">If halted at current step</div>
-            </div>
-          </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <select id="traj-select" style="flex:1;"></select>
+          <button class="btn btn-primary" onclick="selectFromDropdown()">Open in Live Monitor →</button>
         </div>
       </div>
+    </div>
+  </section>
 
-      <!-- Step-by-Step Timeline -->
-      <div id="steps-timeline" class="steps-container"></div>
-    </main>
-  </div>
-
-  <!-- TAB 2: BENCHMARK RESULTS -->
-  <div id="tab-benchmark" class="main-content" style="display:none; max-width:1250px; margin:0 auto;">
-    <h2 style="margin-bottom:6px;">Held-Out Task-Disjoint Benchmark Evaluation (1,722 Test Trajectories)</h2>
-    <p style="color:var(--muted); font-size:0.9rem; margin-bottom:18px;">
-      Comparing Post-Hoc Full-Trajectory DriftNet (Section VII) with Online Streaming Prefix DriftNet (Section XI Future Work).
-    </p>
-
-    <div id="bench-headline" class="bench-grid"></div>
-
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:18px; margin-bottom:20px;">
-      <div class="card">
-        <div class="card-title">Streaming Prefix Performance by Compliance Pattern</div>
-        <table id="tbl-streaming-pattern">
-          <thead>
-            <tr>
-              <th>Compliance Pattern</th>
-              <th>Test Count</th>
-              <th>Caught at 1st Hijack Step</th>
-              <th>Online Recall</th>
-              <th>Retroactive Entry (I) Match</th>
-              <th>Avg Steps Saved</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+  <!-- =================================================================== -->
+  <!-- SCREEN 2: LIVE STEP-BY-STEP MONITOR                                 -->
+  <!-- =================================================================== -->
+  <section id="screen-monitor" class="screen">
+    <!-- User Task Prompt Header -->
+    <div class="task-banner">
+      <div style="flex:1;">
+        <div class="task-label" id="monitor-meta-label">SCENARIO</div>
+        <div class="task-prompt" id="monitor-task-text">Loading...</div>
       </div>
-
-      <div class="card">
-        <div class="card-title">Full-Trajectory Localization &amp; Flag Rates (Paper Table VI &amp; VIII)</div>
-        <table id="tbl-full-metrics">
-          <thead>
-            <tr>
-              <th>Category / Pattern</th>
-              <th>Count</th>
-              <th>DriftNet Flag Rate / Recall</th>
-              <th>Exact Entry (EM_I)</th>
-              <th>Hijacked IoU (IoU_H)</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+      <div style="display:flex; gap:8px;">
+        <button class="btn" onclick="toggleSection('world-drawer')">🌍 Trusted Context</button>
+        <button class="btn" onclick="goToScreen('scenarios')">Change Scenario</button>
       </div>
     </div>
 
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:18px;">
-      <div class="card">
-        <div class="card-title">4-Way Step Classification on Held-Out Test Set (9,796 Steps)</div>
-        <table id="tbl-step-metrics">
+    <!-- Toggleable Trusted World Context Drawer -->
+    <div id="world-drawer" class="toggle-body card" style="margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <strong style="font-size:0.85rem;">🌍 User's Trusted World Context (Used to verify recipients &amp; URLs)</strong>
+        <button class="btn-ghost" onclick="toggleSection('world-drawer')">✕ Close</button>
+      </div>
+      <div id="world-drawer-content" style="font-size:0.86rem; color:var(--text-secondary);"></div>
+    </div>
+
+    <!-- Simple Playback Bar -->
+    <div class="controls-bar">
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <button class="btn" id="btn-restart" onclick="setPrefixLength(1)">⏮ Step 1</button>
+        <button class="btn" id="btn-prev" onclick="stepDelta(-1)">◀ Prev</button>
+        <button class="btn btn-primary" id="btn-next" onclick="stepDelta(1)">Next Step ▶</button>
+        <button class="btn" id="btn-play" onclick="toggleAutoPlay()">⏩ Auto-Play</button>
+        <button class="btn" id="btn-all" onclick="setPrefixLength(999)">⏭ Show All</button>
+      </div>
+      <div style="display:flex; align-items:center; gap:16px;">
+        <label style="font-size:0.84rem; color:var(--text-secondary); display:flex; align-items:center; gap:6px; cursor:pointer;">
+          <input type="checkbox" id="chk-autohalt" checked style="width:auto;" />
+          Stop automatically on hijack
+        </label>
+        <span id="step-counter-badge" style="font-weight:700; font-size:0.9rem; color:var(--primary);">
+          Step 1 of 1
+        </span>
+      </div>
+    </div>
+
+    <!-- Live Status Verdict Banner -->
+    <div id="live-status-banner" class="status-banner safe"></div>
+
+    <!-- Minimalist Step-by-Step Timeline -->
+    <div id="steps-timeline" class="timeline"></div>
+  </section>
+
+  <!-- =================================================================== -->
+  <!-- SCREEN 3: INCIDENT TRIAGE & ROLLBACK REPORT                         -->
+  <!-- =================================================================== -->
+  <section id="screen-triage" class="screen">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <div class="screen-header" style="margin:0;">
+        <h1>Incident Triage &amp; Rollback Report</h1>
+        <p>Actionable answers generated by DriftNet's Dual-Head Transformer at the current step.</p>
+      </div>
+      <button class="btn" onclick="goToScreen('monitor')">← Back to Live Monitor</button>
+    </div>
+
+    <div class="triage-cards">
+      <div class="triage-card">
+        <h3>1. Where did the attack enter?</h3>
+        <div class="big-answer" id="triage-entry-step" style="color:var(--entry);">None</div>
+        <p style="font-size:0.85rem; color:var(--text-secondary);" id="triage-entry-desc">
+          No poisoned observation detected so far.
+        </p>
+      </div>
+
+      <div class="triage-card">
+        <h3>2. Which actions were corrupted?</h3>
+        <div class="big-answer" id="triage-hijack-steps" style="color:var(--hijack);">None</div>
+        <p style="font-size:0.85rem; color:var(--text-secondary);" id="triage-hijack-desc">
+          No hijacked actions require rollback.
+        </p>
+      </div>
+
+      <div class="triage-card">
+        <h3>3. Was the attack resisted?</h3>
+        <div class="big-answer" id="triage-resisted-status" style="color:var(--resisted);">No</div>
+        <p style="font-size:0.85rem; color:var(--text-secondary);" id="triage-resisted-desc">
+          Separates harmless attempts from real breaches.
+        </p>
+      </div>
+    </div>
+
+    <div class="card" id="triage-detail-breakdown"></div>
+  </section>
+
+  <!-- =================================================================== -->
+  <!-- SCREEN 4: BENCHMARK RESULTS                                         -->
+  <!-- =================================================================== -->
+  <section id="screen-benchmark" class="screen">
+    <div class="screen-header">
+      <h1>Benchmark Results (1,722 Held-Out Test Trajectories)</h1>
+      <p>Performance of the trained 1.84M-parameter DriftNet model on the task-disjoint test split.</p>
+    </div>
+
+    <div id="kpi-cards" class="kpi-grid"></div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <h3 style="font-size:0.95rem; margin-bottom:10px;">Real-Time Streaming Detection by Attack Pattern</h3>
+      <table id="tbl-streaming-summary">
+        <thead>
+          <tr>
+            <th>Attack Pattern</th>
+            <th>Test Cases</th>
+            <th>Caught at 1st Hijacked Step</th>
+            <th>Overall Online Recall</th>
+            <th>Avg Downstream Steps Saved</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Toggleable Detailed Academic Tables -->
+    <div class="toggle-section">
+      <button class="toggle-header" onclick="toggleSection('detailed-tables')">
+        <span>📊 Show Detailed Per-Step &amp; Per-Domain Tables</span>
+        <span id="detailed-tables-icon">＋ Expand</span>
+      </button>
+      <div id="detailed-tables" class="toggle-body">
+        <h4 style="margin-bottom:8px;">4-Way Step Classification (9,796 Test Steps)</h4>
+        <table id="tbl-step-details" style="margin-bottom:20px;">
           <thead>
             <tr>
               <th>Step Label</th>
               <th>Precision</th>
               <th>Recall</th>
               <th>F1 Score</th>
-              <th>Support (Steps)</th>
+              <th>Step Count</th>
             </tr>
           </thead>
           <tbody></tbody>
         </table>
-      </div>
 
-      <div class="card">
-        <div class="card-title">Per-Domain Performance Breakdown</div>
-        <table id="tbl-domain-metrics">
+        <h4 style="margin-bottom:8px;">Performance Across 5 Agent Domains</h4>
+        <table id="tbl-domain-details">
           <thead>
             <tr>
-              <th>Agent Domain</th>
-              <th>Test Traces</th>
+              <th>Domain</th>
+              <th>Trajectories</th>
               <th>Attack Recall</th>
-              <th>False-Alarm Rate</th>
+              <th>False Alarm Rate</th>
               <th>Trajectory F1</th>
             </tr>
           </thead>
@@ -696,51 +744,113 @@
         </table>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- Step Edit Modal ("What-If" Live Re-Scoring) -->
+  <!-- Step Edit Modal -->
   <div id="edit-modal-backdrop" class="modal-backdrop">
     <div class="modal">
-      <h3 id="edit-modal-title">Edit Step &amp; Re-Run DriftNet Live</h3>
-      <p style="font-size:0.82rem; color:var(--muted);">
-        Modify the step's Tool, Thought, Arguments (JSON), or Observation to test how DriftNet responds in real time.
+      <h3 id="edit-modal-title" style="margin-bottom:6px;">Edit Step &amp; Re-Score Live</h3>
+      <p style="font-size:0.84rem; color:var(--text-secondary); margin-bottom:14px;">
+        Change the observation or tool arguments below to test how DriftNet updates its verdict.
       </p>
-      <div>
-        <label style="font-size:0.78rem; color:var(--muted);">TOOL</label>
-        <input type="text" id="edit-tool" />
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div>
+          <label style="font-size:0.76rem; font-weight:700; color:var(--text-muted);">TOOL NAME</label>
+          <input type="text" id="edit-tool" />
+        </div>
+        <div>
+          <label style="font-size:0.76rem; font-weight:700; color:var(--text-muted);">AGENT THOUGHT</label>
+          <textarea id="edit-thought" rows="2"></textarea>
+        </div>
+        <div>
+          <label style="font-size:0.76rem; font-weight:700; color:var(--text-muted);">ARGUMENTS (JSON)</label>
+          <textarea id="edit-args" rows="2"></textarea>
+        </div>
+        <div>
+          <label style="font-size:0.76rem; font-weight:700; color:var(--text-muted);">OBSERVATION RETURNED BY TOOL</label>
+          <textarea id="edit-obs" rows="3"></textarea>
+        </div>
       </div>
-      <div>
-        <label style="font-size:0.78rem; color:var(--muted);">THOUGHT</label>
-        <textarea id="edit-thought" rows="2"></textarea>
-      </div>
-      <div>
-        <label style="font-size:0.78rem; color:var(--muted);">ARGS (JSON)</label>
-        <textarea id="edit-args" rows="2"></textarea>
-      </div>
-      <div>
-        <label style="font-size:0.78rem; color:var(--muted);">OBSERVATION (OBS)</label>
-        <textarea id="edit-obs" rows="3"></textarea>
-      </div>
-      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:6px;">
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
         <button class="btn" onclick="closeEditModal()">Cancel</button>
-        <button class="btn btn-primary" id="btn-save-edit" onclick="saveStepEdit()">⚡ Re-Score Stream with DriftNet</button>
+        <button class="btn btn-primary" id="btn-save-edit" onclick="saveStepEdit()">Re-Run DriftNet</button>
       </div>
     </div>
   </div>
 
   <script>
     let currentTraj = null;
-    let originalTrajId = null;
     let currentPrefixLen = 1;
     let autoPlayTimer = null;
     let editingStepIdx = null;
 
-    function switchTab(tab) {
-      document.getElementById('tab-simulator').style.display = tab === 'simulator' ? 'grid' : 'none';
-      document.getElementById('tab-benchmark').style.display = tab === 'benchmark' ? 'block' : 'none';
-      const btns = document.querySelectorAll('.tab-btn');
-      btns[0].classList.toggle('active', tab === 'simulator');
-      btns[1].classList.toggle('active', tab === 'benchmark');
+    const SCENARIO_DESCRIPTIONS = {
+      "Full Hijack (Banking)": {
+        badge: "Full Hijack",
+        badgeClass: "pill-hijacked",
+        desc: "A poisoned loan-fee lookup tricks the banking agent into sending sensitive customer data to an external address."
+      },
+      "Partial Hijack + Recovery (Email)": {
+        badge: "Partial Hijack",
+        badgeClass: "pill-injection_point",
+        desc: "The email agent complies with a hidden instruction for one step, then recovers and finishes the user's real task."
+      },
+      "Delayed Execution (Web)": {
+        badge: "Delayed Attack",
+        badgeClass: "pill-hijacked",
+        desc: "The agent reads a poisoned search result at Step 2, performs a normal step at Step 3, and executes the attack at Step 4."
+      },
+      "Delayed Execution (Medical)": {
+        badge: "Delayed Attack",
+        badgeClass: "pill-hijacked",
+        desc: "A medical record contains a hidden instruction that triggers an unauthorized action several steps later."
+      },
+      "Resisted / Failed Attack (Banking)": {
+        badge: "Attack Resisted",
+        badgeClass: "pill-failed_injection",
+        desc: "A fake FDIC alert tries to trick the agent into transferring funds, but the agent recognizes and ignores it."
+      },
+      "Hard Negative (Suspicious Benign)": {
+        badge: "Hard Negative",
+        badgeClass: "pill-benign",
+        desc: "Legitimate security-related task that looks suspicious on the surface but is 100% authorized by the user."
+      },
+      "Benign Execution (Coding)": {
+        badge: "Safe / Benign",
+        badgeClass: "pill-benign",
+        desc: "Routine developer workflow installing and verifying a Python package with no prompt injection."
+      }
+    };
+
+    function goToScreen(name) {
+      stopAutoPlay();
+      ['scenarios', 'monitor', 'triage', 'benchmark'].forEach(s => {
+        document.getElementById(`screen-${s}`).classList.toggle('active', s === name);
+        document.getElementById(`nav-${s}`).classList.toggle('active', s === name);
+      });
+      if (name === 'triage') {
+        renderTriageScreen();
+      }
+    }
+
+    function toggleSection(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const isOpen = el.classList.toggle('open');
+      const icon = document.getElementById(`${id}-icon`);
+      if (icon) {
+        icon.textContent = isOpen ? '－ Collapse' : '＋ Expand';
+      }
+    }
+
+    function toggleStepDetail(idx) {
+      const el = document.getElementById(`step-detail-${idx}`);
+      const btn = document.getElementById(`step-detail-btn-${idx}`);
+      if (!el) return;
+      const isOpen = el.classList.toggle('open');
+      if (btn) {
+        btn.textContent = isOpen ? 'Hide Details ▲' : 'Details ▼';
+      }
     }
 
     async function initApp() {
@@ -757,22 +867,37 @@
       const data = await res.json();
 
       if (initial && data.featured) {
-        const pList = document.getElementById('preset-list');
-        pList.innerHTML = '';
+        const grid = document.getElementById('scenario-cards-grid');
+        grid.innerHTML = '';
         data.featured.forEach((f, idx) => {
-          const btn = document.createElement('button');
-          btn.className = 'preset-btn' + (idx === 0 ? ' active' : '');
-          btn.dataset.id = f.id;
-          btn.innerHTML = `
-            <span>${f.preset_label}</span>
-            <span class="meta-tag">${f.num_steps} steps</span>
-          `;
-          btn.onclick = () => {
-            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            selectTrajectory(f.id);
+          const info = SCENARIO_DESCRIPTIONS[f.preset_label] || {
+            badge: f.category,
+            badgeClass: 'pill-benign',
+            desc: 'Real trajectory from the held-out test split.'
           };
-          pList.appendChild(btn);
+          const card = document.createElement('div');
+          card.className = 'scenario-card' + (idx === 0 ? ' selected' : '');
+          card.innerHTML = `
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="pill ${info.badgeClass}">${info.badge}</span>
+                <span style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">${f.num_steps} steps • ${f.agent.toUpperCase()}</span>
+              </div>
+              <div class="scenario-title">${f.preset_label}</div>
+              <div class="scenario-desc">${info.desc}</div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding-top:8px; border-top:1px solid var(--border);">
+              <code style="font-size:0.75rem; color:var(--text-muted);">${f.id}</code>
+              <span style="font-size:0.84rem; font-weight:700; color:var(--primary);">Launch Monitor →</span>
+            </div>
+          `;
+          card.onclick = async () => {
+            document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            await loadTrajectory(f.id);
+            goToScreen('monitor');
+          };
+          grid.appendChild(card);
         });
       }
 
@@ -781,53 +906,43 @@
       data.trajectories.forEach(t => {
         const opt = document.createElement('option');
         opt.value = t.id;
-        opt.textContent = `${t.id} (${t.num_steps} steps)`;
+        opt.textContent = `${t.id} — ${t.agent.toUpperCase()} (${t.category}, ${t.num_steps} steps)`;
         sel.appendChild(opt);
       });
 
       if (initial && data.featured && data.featured.length > 0) {
-        await selectTrajectory(data.featured[0].id);
-      } else if (data.trajectories.length > 0) {
-        await selectTrajectory(data.trajectories[0].id);
+        await loadTrajectory(data.featured[0].id);
       }
     }
 
-    async function selectTrajectory(trajId) {
+    async function selectFromDropdown() {
+      const id = document.getElementById('traj-select').value;
+      if (id) {
+        await loadTrajectory(id);
+        goToScreen('monitor');
+      }
+    }
+
+    async function loadTrajectory(trajId) {
       stopAutoPlay();
-      originalTrajId = trajId;
-      document.getElementById('traj-select').value = trajId;
       const res = await fetch(`/api/trajectory/${trajId}`);
       currentTraj = await res.json();
       currentPrefixLen = 1;
-      renderWorldAndMeta();
-      renderStreamView();
+      renderMonitorHeader();
+      renderMonitorSteps();
     }
 
-    async function resetCustomEdits() {
-      if (originalTrajId) {
-        await selectTrajectory(originalTrajId);
-      }
-    }
-
-    function renderWorldAndMeta() {
+    function renderMonitorHeader() {
       if (!currentTraj) return;
-      document.getElementById('task-text').textContent = `"${currentTraj.task}"`;
-      document.getElementById('traj-meta-badges').textContent =
-        `ID: ${currentTraj.id} | Domain: ${currentTraj.agent.toUpperCase()} | True Category: ${currentTraj.category.toUpperCase()} (${currentTraj.compliance})`;
+      document.getElementById('monitor-meta-label').textContent =
+        `${currentTraj.agent.toUpperCase()} AGENT • ID: ${currentTraj.id}`;
+      document.getElementById('monitor-task-text').textContent = `"${currentTraj.task}"`;
 
       const w = currentTraj.world || {};
-      const contacts = (w.contacts || []).map(
-        c => `<span class="contact-pill" title="${c.relation}">${c.name} &lt;${c.email}&gt;</span>`
-      ).join('');
-      const domains = (currentTraj.known_domains || []).map(
-        d => `<span class="contact-pill" style="color:var(--accent);">@${d}</span>`
-      ).join('');
-
-      document.getElementById('world-context-box').innerHTML = `
-        <div class="world-row"><strong>User:</strong> ${w.user || 'N/A'} (<code>${w.email || ''}</code>)</div>
-        <div class="world-row"><strong>Organization:</strong> ${w.company || 'N/A'}</div>
-        <div class="world-row"><strong>Trusted Domains:</strong><br/>${domains || 'None'}</div>
-        <div class="world-row"><strong>Trusted Contacts (${(w.contacts || []).length}):</strong><br/>${contacts || 'None'}</div>
+      const contacts = (w.contacts || []).map(c => `${c.name} (${c.email})`).join(', ');
+      document.getElementById('world-drawer-content').innerHTML = `
+        <div><strong>User:</strong> ${w.user || 'N/A'} (${w.email || ''}) — <strong>Company:</strong> ${w.company || 'N/A'}</div>
+        <div style="margin-top:4px;"><strong>Trusted Contacts:</strong> ${contacts || 'None'}</div>
       `;
     }
 
@@ -835,7 +950,7 @@
       if (!currentTraj) return;
       const T = currentTraj.steps.length;
       currentPrefixLen = Math.max(1, Math.min(T, len));
-      renderStreamView();
+      renderMonitorSteps();
     }
 
     function stepDelta(delta) {
@@ -851,9 +966,9 @@
       if (!currentTraj) return;
       if (currentPrefixLen >= currentTraj.steps.length) {
         currentPrefixLen = 1;
-        renderStreamView();
+        renderMonitorSteps();
       }
-      document.getElementById('btn-play').textContent = '⏸ Pause Stream';
+      document.getElementById('btn-play').textContent = '⏸ Pause';
       autoPlayTimer = setInterval(() => {
         const snap = currentTraj.prefix_snapshots[currentPrefixLen - 1];
         const autoHalt = document.getElementById('chk-autohalt').checked;
@@ -863,7 +978,7 @@
         }
         if (currentPrefixLen < currentTraj.steps.length) {
           currentPrefixLen++;
-          renderStreamView();
+          renderMonitorSteps();
           const nextSnap = currentTraj.prefix_snapshots[currentPrefixLen - 1];
           if (autoHalt && nextSnap.traj_compromised) {
             stopAutoPlay();
@@ -871,7 +986,7 @@
         } else {
           stopAutoPlay();
         }
-      }, 950);
+      }, 900);
     }
 
     function stopAutoPlay() {
@@ -880,165 +995,200 @@
         autoPlayTimer = null;
       }
       const btn = document.getElementById('btn-play');
-      if (btn) btn.textContent = '⏩ Auto-Stream';
+      if (btn) btn.textContent = '⏩ Auto-Play';
     }
 
-    function renderStreamView() {
+    function humanStepLabel(lbl) {
+      if (lbl === 'injection_point') return '🟠 Poison Entered Here';
+      if (lbl === 'hijacked') return '🔴 Hijacked Action';
+      if (lbl === 'failed_injection') return '🟣 Attack Ignored';
+      return '🟢 Safe Step';
+    }
+
+    function renderMonitorSteps() {
       if (!currentTraj) return;
       const T = currentTraj.steps.length;
       const snap = currentTraj.prefix_snapshots[currentPrefixLen - 1];
 
-      document.getElementById('prefix-indicator').textContent = `Observed Prefix: ${currentPrefixLen} / ${T} Steps`;
+      document.getElementById('step-counter-badge').textContent = `Step ${currentPrefixLen} of ${T}`;
       document.getElementById('btn-prev').disabled = currentPrefixLen <= 1;
-      document.getElementById('btn-start').disabled = currentPrefixLen <= 1;
+      document.getElementById('btn-restart').disabled = currentPrefixLen <= 1;
       document.getElementById('btn-next').disabled = currentPrefixLen >= T;
-      document.getElementById('btn-end').disabled = currentPrefixLen >= T;
+      document.getElementById('btn-all').disabled = currentPrefixLen >= T;
 
-      // Head 1 Gauge
-      const pct = (snap.traj_prob * 100).toFixed(1);
-      const probEl = document.getElementById('head1-prob');
-      const badgeEl = document.getElementById('head1-badge');
-      const barEl = document.getElementById('head1-bar');
+      // Status Banner
+      const banner = document.getElementById('live-status-banner');
+      const injSteps = snap.injection_points.map(i => `Step ${i + 1}`).join(', ') || 'earlier step';
+      const hijSteps = snap.hijacked_steps.map(i => `Step ${i + 1}`).join(', ');
+      const failSteps = snap.failed_injection_steps.map(i => `Step ${i + 1}`).join(', ');
+      const savedSteps = T - currentPrefixLen;
 
-      probEl.textContent = `${pct}%`;
-      barEl.style.width = `${pct}%`;
-
-      const hasFailedOnly = !snap.traj_compromised && snap.failed_injection_steps.length > 0;
       if (snap.traj_compromised) {
-        badgeEl.className = 'label-badge lbl-hijacked';
-        badgeEl.textContent = '🚨 COMPROMISED';
-        barEl.style.background = 'var(--hijack)';
-        probEl.style.color = 'var(--hijack)';
-      } else if (hasFailedOnly) {
-        badgeEl.className = 'label-badge lbl-failed_injection';
-        badgeEl.textContent = '🛡️ ATTACK RESISTED';
-        barEl.style.background = 'var(--failed)';
-        probEl.style.color = 'var(--failed)';
-      } else {
-        badgeEl.className = 'label-badge lbl-benign';
-        badgeEl.textContent = '✅ SAFE / BENIGN';
-        barEl.style.background = 'var(--benign)';
-        probEl.style.color = 'var(--benign)';
-      }
-
-      // Head 2 Triage Summary
-      const injSteps = snap.injection_points.map(i => `Step ${i + 1}`).join(', ') || 'None';
-      const hijSteps = snap.hijacked_steps.map(i => `Step ${i + 1}`).join(', ') || 'None';
-      const failSteps = snap.failed_injection_steps.map(i => `Step ${i + 1}`).join(', ') || 'None';
-      const savedCount = snap.traj_compromised ? (T - currentPrefixLen) : 0;
-
-      document.getElementById('triage-inj').textContent = injSteps;
-      document.getElementById('triage-hij').textContent = hijSteps;
-      document.getElementById('triage-fail').textContent = failSteps;
-      document.getElementById('triage-saved').textContent = `${savedCount} step${savedCount === 1 ? '' : 's'}`;
-
-      // Interceptor Banner
-      const banner = document.getElementById('interceptor-banner');
-      if (snap.traj_compromised) {
-        banner.className = 'interceptor-alert danger';
+        banner.className = 'status-banner hijacked';
         banner.innerHTML = `
           <div>
-            <strong style="color:#fca5a5;">🛑 ONLINE INTERCEPTOR TRIGGERED AT STEP ${currentPrefixLen}:</strong>
-            Hijacked action detected at <b>${hijSteps}</b>! Retroactively pinpointed poison entry at <b>${injSteps}</b>.
-            Halting execution prevents <b>${savedCount}</b> downstream step(s).
+            <div style="font-weight:800; font-size:1rem;">🚨 Compromise Detected — Agent Execution Halted!</div>
+            <div style="font-size:0.88rem; margin-top:2px;">
+              Hijacked action caught at <strong>${hijSteps}</strong> (traced back to poison in <strong>${injSteps}</strong>).
+              Stopping here prevents <strong>${savedSteps}</strong> remaining step(s).
+            </div>
           </div>
-          <span class="label-badge lbl-hijacked">ROLLBACK ${hijSteps}</span>
+          <button class="btn btn-primary" style="background:var(--hijack); border-color:var(--hijack);" onclick="goToScreen('triage')">
+            Open Triage Report →
+          </button>
         `;
-      } else if (hasFailedOnly) {
-        banner.className = 'interceptor-alert resisted';
+      } else if (snap.failed_injection_steps.length > 0) {
+        banner.className = 'status-banner resisted';
         banner.innerHTML = `
           <div>
-            <strong style="color:#d8b4fe;">🛡️ RESISTED PROMPT INJECTION DETECTED (${failSteps}):</strong>
-            Poisoned observation was present, but the agent refused to comply. No false alarm triggered!
+            <div style="font-weight:800; font-size:1rem;">🛡️ Prompt Injection Attempt Resisted (${failSteps})</div>
+            <div style="font-size:0.88rem; margin-top:2px;">
+              A malicious instruction appeared in ${failSteps}, but the agent ignored it and stayed on task.
+            </div>
           </div>
-          <span class="label-badge lbl-failed_injection">NO ROLLBACK NEEDED</span>
+          <button class="btn" onclick="goToScreen('triage')">View Report →</button>
         `;
       } else {
-        banner.className = 'interceptor-alert';
-        banner.innerHTML = '';
+        banner.className = 'status-banner safe';
+        banner.innerHTML = `
+          <div>
+            <div style="font-weight:800; font-size:1rem;">✅ All Observed Steps Safe (Steps 1–${currentPrefixLen})</div>
+            <div style="font-size:0.88rem; margin-top:2px;">
+              Agent actions align with the user's goal and trusted world context (Risk Score: ${(snap.traj_prob * 100).toFixed(1)}%).
+            </div>
+          </div>
+          <button class="btn" onclick="goToScreen('triage')">View Triage Summary →</button>
+        `;
       }
 
-      // Render Step Cards
+      // Render Step Cards (Clean by default, expandable details)
       const container = document.getElementById('steps-timeline');
       container.innerHTML = '';
 
       currentTraj.steps.forEach((step, idx) => {
         const isObserved = idx < currentPrefixLen;
-        const card = document.createElement('div');
+        const item = document.createElement('div');
 
         if (isObserved) {
           const sv = snap.step_verdicts[idx];
           const predLbl = sv.pred_label;
           const probs = sv.probabilities;
           const wf = step.world_features;
-          const matchIcon = predLbl === step.gold_label ? '✓' : '≠';
 
-          card.className = `step-card pred-${predLbl}`;
-          card.innerHTML = `
-            <div class="step-header">
-              <div class="step-title">
-                <span>Step ${step.step_number}</span>
-                <span class="tool-pill">${escapeHtml(step.tool)}()</span>
-                <button class="btn" style="padding:2px 8px; font-size:0.73rem;" onclick="openEditModal(${idx})">✏️ Edit Step</button>
+          item.className = `step-item pred-${predLbl}`;
+          item.innerHTML = `
+            <div class="step-top">
+              <div class="step-title-group">
+                <span class="step-num">Step ${step.step_number}</span>
+                <span class="tool-chip">${escapeHtml(step.tool)}()</span>
               </div>
               <div style="display:flex; align-items:center; gap:8px;">
-                <span style="font-size:0.75rem; color:var(--muted);">
-                  Gold: <code>${step.gold_label}</code> (${matchIcon})
-                </span>
-                <span class="label-badge lbl-${predLbl}">
-                  DriftNet: ${predLbl.replace('_', ' ')} (${(probs[predLbl] * 100).toFixed(1)}%)
-                </span>
+                <span class="pill pill-${predLbl}">${humanStepLabel(predLbl)}</span>
+                <button class="btn-ghost" id="step-detail-btn-${idx}" onclick="toggleStepDetail(${idx})">Details ▼</button>
               </div>
             </div>
-            <div class="step-body">
-              <div class="field-row">
-                <span class="field-key">THOUGHT</span>
-                <span class="field-val">${escapeHtml(step.thought)}</span>
-              </div>
-              <div class="field-row">
-                <span class="field-key">ARGS</span>
-                <span class="field-val">${escapeHtml(JSON.stringify(step.args))}</span>
-              </div>
-              <div class="field-row">
-                <span class="field-key">OBS</span>
-                <span class="field-val">${escapeHtml(step.obs)}</span>
-              </div>
+
+            <div class="step-thought">
+              "${escapeHtml(step.thought)}"
             </div>
-            <div class="step-footer">
-              <div class="wf-pills">
-                <strong style="margin-right:4px;">World Flags (w_${step.step_number}):</strong>
-                <span class="${wf.args_has_email > 0 ? 'active-flag' : ''}">has_email=${wf.args_has_email}</span>
-                <span class="${wf.args_has_external_email > 0 ? 'active-flag' : ''}">ext_email=${wf.args_has_external_email}</span>
-                <span class="${wf.args_external_email_frac > 0 ? 'active-flag' : ''}">ext_frac=${wf.args_external_email_frac}</span>
-                <span class="${wf.args_has_external_url > 0 ? 'active-flag' : ''}">ext_url=${wf.args_has_external_url}</span>
+
+            <!-- Toggleable Technical Details -->
+            <div class="step-details" id="step-detail-${idx}">
+              <div class="detail-box">
+                <strong>Arguments Passed:</strong> ${escapeHtml(JSON.stringify(step.args))}
               </div>
-              <div style="font-family:monospace;">
-                P(B)=${probs.benign.toFixed(2)} | P(I)=${probs.injection_point.toFixed(2)} | P(H)=${probs.hijacked.toFixed(2)} | P(F)=${probs.failed_injection.toFixed(2)}
+              <div class="detail-box">
+                <strong>Tool Observation:</strong> ${escapeHtml(step.obs)}
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:8px; color:var(--text-muted); font-size:0.78rem;">
+                <div>
+                  <strong>World Context Checks:</strong>
+                  External Email: <code>${wf.args_has_external_email > 0 ? 'YES ⚠️' : 'No'}</code> |
+                  External URL: <code>${wf.args_has_external_url > 0 ? 'YES ⚠️' : 'No'}</code> |
+                  Ground-Truth Label: <code>${step.gold_label}</code>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <span>Confidence: ${(probs[predLbl] * 100).toFixed(1)}%</span>
+                  <button class="btn" style="padding:3px 10px; font-size:0.76rem;" onclick="openEditModal(${idx})">✏️ Edit Step</button>
+                </div>
               </div>
             </div>
           `;
         } else {
-          card.className = 'step-card future';
-          card.innerHTML = `
-            <div class="step-header">
-              <div class="step-title">
-                <span>Step ${step.step_number} (Upcoming — Not Yet Observed by Stream)</span>
-                <span class="tool-pill">${escapeHtml(step.tool)}()</span>
+          item.className = 'step-item upcoming';
+          item.innerHTML = `
+            <div class="step-top">
+              <div class="step-title-group">
+                <span class="step-num">Step ${step.step_number} (Upcoming)</span>
+                <span class="tool-chip">${escapeHtml(step.tool)}()</span>
               </div>
-              <button class="btn" style="padding:3px 9px; font-size:0.75rem;" onclick="setPrefixLength(${step.step_number})">
-                Advance Stream Here ▶
+              <button class="btn" style="padding:4px 10px; font-size:0.78rem;" onclick="setPrefixLength(${step.step_number})">
+                Jump to Step ${step.step_number} ▶
               </button>
             </div>
           `;
         }
-        container.appendChild(card);
+        container.appendChild(item);
       });
+    }
+
+    function renderTriageScreen() {
+      if (!currentTraj) return;
+      const snap = currentTraj.prefix_snapshots[currentPrefixLen - 1];
+
+      const injIdx = snap.injection_points;
+      const hijIdx = snap.hijacked_steps;
+      const failIdx = snap.failed_injection_steps;
+
+      document.getElementById('triage-entry-step').textContent =
+        injIdx.length > 0 ? injIdx.map(i => `Step ${i + 1}`).join(', ') : 'None';
+      document.getElementById('triage-entry-desc').textContent =
+        injIdx.length > 0
+          ? `Distrust content returned by ${injIdx.map(i => currentTraj.steps[i].tool + '()').join(', ')}.`
+          : 'No malicious entry point active.';
+
+      document.getElementById('triage-hijack-steps').textContent =
+        hijIdx.length > 0 ? hijIdx.map(i => `Step ${i + 1}`).join(', ') : 'None';
+      document.getElementById('triage-hijack-desc').textContent =
+        hijIdx.length > 0
+          ? `Roll back tool calls: ${hijIdx.map(i => currentTraj.steps[i].tool + '()').join(', ')}.`
+          : 'No corrupted actions executed.';
+
+      document.getElementById('triage-resisted-status').textContent =
+        failIdx.length > 0 ? `Yes (Step ${failIdx.map(i => i + 1).join(', ')})` : 'No';
+      document.getElementById('triage-resisted-desc').textContent =
+        failIdx.length > 0
+          ? 'Agent saw injected text but refused to deviate from user task.'
+          : (snap.traj_compromised ? 'Agent complied with the injected instruction.' : 'No injection attempt encountered.');
+
+      let html = `<h3 style="font-size:1rem; margin-bottom:12px;">Step-by-Step Action Audit (Steps 1–${currentPrefixLen})</h3>`;
+      html += `<table><thead><tr><th>Step</th><th>Tool Called</th><th>DriftNet Verdict</th><th>Recommended Operator Action</th></tr></thead><tbody>`;
+
+      for (let i = 0; i < currentPrefixLen; i++) {
+        const s = currentTraj.steps[i];
+        const sv = snap.step_verdicts[i];
+        let actionText = 'Keep (Legitimate user step)';
+        if (sv.pred_label === 'injection_point') actionText = '⚠️ Block / Quarantine data source returned in observation';
+        if (sv.pred_label === 'hijacked') actionText = '🛑 Roll back / Undo this tool execution';
+        if (sv.pred_label === 'failed_injection') actionText = '✓ No rollback needed (Attack was ignored by agent)';
+
+        html += `
+          <tr>
+            <td><strong>Step ${s.step_number}</strong></td>
+            <td><code>${escapeHtml(s.tool)}()</code></td>
+            <td><span class="pill pill-${sv.pred_label}">${humanStepLabel(sv.pred_label)}</span></td>
+            <td>${actionText}</td>
+          </tr>
+        `;
+      }
+      html += `</tbody></table>`;
+      document.getElementById('triage-detail-breakdown').innerHTML = html;
     }
 
     function openEditModal(stepIdx) {
       editingStepIdx = stepIdx;
       const step = currentTraj.steps[stepIdx];
-      document.getElementById('edit-modal-title').textContent = `Edit Step ${step.step_number} & Re-Score Stream`;
+      document.getElementById('edit-modal-title').textContent = `Edit Step ${step.step_number} & Re-Run DriftNet`;
       document.getElementById('edit-tool').value = step.tool;
       document.getElementById('edit-thought').value = step.thought;
       document.getElementById('edit-args').value = JSON.stringify(step.args);
@@ -1054,7 +1204,7 @@
     async function saveStepEdit() {
       if (editingStepIdx === null || !currentTraj) return;
       const btn = document.getElementById('btn-save-edit');
-      btn.textContent = '⏳ Encoding & Scoring...';
+      btn.textContent = 'Scoring...';
       btn.disabled = true;
 
       try {
@@ -1063,7 +1213,7 @@
         try {
           parsedArgs = JSON.parse(rawArgs);
         } catch (e) {
-          parsedArgs = { raw: rawArgs };
+          parsedArgs = { value: rawArgs };
         }
 
         const updatedSteps = currentTraj.steps.map((s, idx) => {
@@ -1092,9 +1242,9 @@
         currentTraj.prefix_snapshots = scored.prefix_snapshots;
         currentTraj.halt_step_index = scored.halt_step_index;
         closeEditModal();
-        renderStreamView();
+        renderMonitorSteps();
       } finally {
-        btn.textContent = '⚡ Re-Score Stream with DriftNet';
+        btn.textContent = 'Re-Run DriftNet';
         btn.disabled = false;
       }
     }
@@ -1107,85 +1257,49 @@
       const tf = data.test_full;
       const ts = data.test_streaming;
 
-      document.getElementById('bench-headline').innerHTML = `
-        <div class="metric-card">
-          <div class="card-title">Full-Trace Test F1</div>
-          <div class="m-val">${(tf.trajectory.f1 * 100).toFixed(1)}%</div>
-          <div style="font-size:0.78rem; color:var(--muted);">Precision: ${(tf.trajectory.precision*100).toFixed(1)}% | Recall: ${(tf.trajectory.recall*100).toFixed(1)}%</div>
+      document.getElementById('kpi-cards').innerHTML = `
+        <div class="kpi-card">
+          <div style="font-size:0.76rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Trajectory F1 Score</div>
+          <div class="kpi-val">${(tf.trajectory.f1 * 100).toFixed(1)}%</div>
+          <div style="font-size:0.8rem; color:var(--text-secondary);">Across 1,722 held-out test traces</div>
         </div>
-        <div class="metric-card">
-          <div class="card-title">Exact Entry-Point Match (EM_I)</div>
-          <div class="m-val">${(tf.localization.overall_em_i * 100).toFixed(1)}%</div>
-          <div style="font-size:0.78rem; color:var(--muted);">Hijacked Span IoU: ${(tf.localization.overall_iou_h * 100).toFixed(1)}%</div>
+        <div class="kpi-card">
+          <div style="font-size:0.76rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Exact Entry Point Match</div>
+          <div class="kpi-val">${(tf.localization.overall_em_i * 100).toFixed(1)}%</div>
+          <div style="font-size:0.8rem; color:var(--text-secondary);">Pinpoints exact poisoned step</div>
         </div>
-        <div class="metric-card">
-          <div class="card-title">Instant 1st-Hijack Catch Rate</div>
-          <div class="m-val" style="color:var(--benign);">${(ts.instant_first_hijack_recall * 100).toFixed(1)}%</div>
-          <div style="font-size:0.78rem; color:var(--muted);">Caught at exact 1st hijacked step (0-step delay)</div>
+        <div class="kpi-card">
+          <div style="font-size:0.76rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Online Streaming Recall</div>
+          <div class="kpi-val" style="color:var(--safe);">${(ts.online_overall_recall * 100).toFixed(1)}%</div>
+          <div style="font-size:0.8rem; color:var(--text-secondary);">${(ts.instant_first_hijack_recall * 100).toFixed(1)}% caught at 1st hijacked step</div>
         </div>
-        <div class="metric-card">
-          <div class="card-title">Resisted Attack False Alarms</div>
-          <div class="m-val" style="color:var(--failed);">${(tf.category_flag_rates.failed_attack.rate * 100).toFixed(1)}%</div>
-          <div style="font-size:0.78rem; color:var(--muted);">${tf.category_flag_rates.failed_attack.flagged} / ${tf.category_flag_rates.failed_attack.total} resisted attacks flagged</div>
-        </div>
-        <div class="metric-card">
-          <div class="card-title">Downstream Steps Prevented</div>
-          <div class="m-val">${ts.total_downstream_steps_saved.toLocaleString()}</div>
-          <div style="font-size:0.78rem; color:var(--muted);">Avg ${ts.mean_downstream_steps_saved} steps saved per halted trace</div>
+        <div class="kpi-card">
+          <div style="font-size:0.76rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Steps Saved by Halting</div>
+          <div class="kpi-val">${ts.total_downstream_steps_saved.toLocaleString()}</div>
+          <div style="font-size:0.8rem; color:var(--text-secondary);">Downstream steps prevented</div>
         </div>
       `;
 
-      // Table 1: Streaming by pattern
-      const pBody = document.querySelector('#tbl-streaming-pattern tbody');
-      pBody.innerHTML = '';
+      const sBody = document.querySelector('#tbl-streaming-summary tbody');
+      sBody.innerHTML = '';
       for (const [pat, p] of Object.entries(ts.by_pattern)) {
-        pBody.innerHTML += `
+        sBody.innerHTML += `
           <tr>
-            <td><strong>${pat.replace('_', ' ')}</strong></td>
+            <td><strong>${pat.replace('_', ' ').toUpperCase()}</strong></td>
             <td>${p.n}</td>
-            <td style="color:var(--benign); font-weight:700;">${(p.instant_first_hijack_recall * 100).toFixed(1)}%</td>
-            <td>${(p.online_overall_recall * 100).toFixed(1)}%</td>
-            <td>${(p.retroactive_entry_exact_match * 100).toFixed(1)}%</td>
+            <td style="color:var(--safe); font-weight:700;">${(p.instant_first_hijack_recall * 100).toFixed(1)}%</td>
+            <td><strong>${(p.online_overall_recall * 100).toFixed(1)}%</strong></td>
             <td>${p.mean_downstream_steps_saved} steps</td>
           </tr>
         `;
       }
 
-      // Table 2: Full trajectory localization & category flag rates
-      const fBody = document.querySelector('#tbl-full-metrics tbody');
-      fBody.innerHTML = '';
-      for (const [pat, loc] of Object.entries(tf.localization.by_pattern)) {
-        const rec = tf.pattern_recall[pat];
-        fBody.innerHTML += `
-          <tr>
-            <td><strong>Attacked: ${pat.replace('_', ' ')}</strong></td>
-            <td>${loc.n}</td>
-            <td style="color:var(--accent); font-weight:700;">${(rec.rate * 100).toFixed(1)}% (Recall)</td>
-            <td>${(loc.em_i * 100).toFixed(1)}%</td>
-            <td>${(loc.iou_h * 100).toFixed(1)}%</td>
-          </tr>
-        `;
-      }
-      for (const cat of ['benign', 'failed_attack', 'hard_negative']) {
-        const c = tf.category_flag_rates[cat];
-        fBody.innerHTML += `
-          <tr>
-            <td>Negative: <code>${cat}</code></td>
-            <td>${c.total}</td>
-            <td style="color:var(--benign);">${(c.rate * 100).toFixed(1)}% (${c.flagged}/${c.total} False Alarm)</td>
-            <td>—</td>
-            <td>—</td>
-          </tr>
-        `;
-      }
-
-      // Table 3: Step metrics
-      const sBody = document.querySelector('#tbl-step-metrics tbody');
-      sBody.innerHTML = '';
+      const stepBody = document.querySelector('#tbl-step-details tbody');
+      stepBody.innerHTML = '';
       for (const [lbl, sm] of Object.entries(tf.step_metrics)) {
-        sBody.innerHTML += `
+        stepBody.innerHTML += `
           <tr>
-            <td><span class="label-badge lbl-${lbl}">${lbl}</span></td>
+            <td><span class="pill pill-${lbl}">${humanStepLabel(lbl)}</span></td>
             <td>${(sm.precision * 100).toFixed(1)}%</td>
             <td>${(sm.recall * 100).toFixed(1)}%</td>
             <td><strong>${(sm.f1 * 100).toFixed(1)}%</strong></td>
@@ -1194,11 +1308,10 @@
         `;
       }
 
-      // Table 4: Domain metrics
-      const dBody = document.querySelector('#tbl-domain-metrics tbody');
-      dBody.innerHTML = '';
+      const domBody = document.querySelector('#tbl-domain-details tbody');
+      domBody.innerHTML = '';
       for (const [dom, dm] of Object.entries(tf.domain_summary)) {
-        dBody.innerHTML += `
+        domBody.innerHTML += `
           <tr>
             <td><strong>${dom.toUpperCase()}</strong></td>
             <td>${dm.n}</td>
