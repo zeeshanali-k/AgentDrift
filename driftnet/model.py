@@ -78,7 +78,11 @@ class DriftNet(nn.Module):
             activation="gelu",
             batch_first=True,
         )
-        self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+        self.encoder = nn.TransformerEncoder(
+            encoder_layer,
+            num_layers=num_layers,
+            enable_nested_tensor=False,
+        )
 
         # Eq. 10: Head 1 (Trajectory compromise probability)
         self.mlp_traj = nn.Sequential(

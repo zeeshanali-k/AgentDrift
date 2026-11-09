@@ -127,6 +127,7 @@ def build_or_load_split_cache(
     if encoder is None:
         from sentence_transformers import SentenceTransformer
         encoder = SentenceTransformer("all-mpnet-base-v2", device=device)
+    encoder.max_seq_length = 160
 
     all_step_texts: List[str] = []
     traj_slices: List[Tuple[int, int]] = []
@@ -162,9 +163,10 @@ def build_or_load_split_cache(
             "num_steps": n_steps,
         })
 
+    enc_batch_size = 64 if device == "mps" else 256
     embeddings = encoder.encode(
         all_step_texts,
-        batch_size=256,
+        batch_size=enc_batch_size,
         show_progress_bar=True,
         convert_to_numpy=True,
         normalize_embeddings=True,
