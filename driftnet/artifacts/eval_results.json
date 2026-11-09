@@ -1,0 +1,96 @@
+{
+  "model_info": {
+    "name": "DriftNet (Dual-Head Trajectory Transformer)",
+    "trainable_parameters": 1845637,
+    "encoder": "all-mpnet-base-v2 (frozen, 768-d)",
+    "world_features": [
+      "args_has_email",
+      "args_has_external_email",
+      "args_external_email_frac",
+      "args_has_external_url"
+    ],
+    "layers": 3,
+    "d_model": 256,
+    "nhead": 4,
+    "ffn_dim": 512
+  },
+  "test_full": {
+    "loss": 0.082,
+    "trajectory": {
+      "precision": 0.982,
+      "recall": 0.985,
+      "f1": 0.983,
+      "tp": 763,
+      "fp": 14,
+      "fn": 12,
+      "tn": 933
+    },
+    "category_flag_rates": {
+      "attacked": { "flagged": 763, "total": 775, "rate": 0.985 },
+      "benign": { "flagged": 8, "total": 525, "rate": 0.015 },
+      "failed_attack": { "flagged": 0, "total": 218, "rate": 0.0 },
+      "hard_negative": { "flagged": 6, "total": 204, "rate": 0.029 }
+    },
+    "pattern_recall": {
+      "full_hijack": { "recalled": 449, "total": 450, "rate": 0.998 },
+      "partial_hijack": { "recalled": 205, "total": 208, "rate": 0.986 },
+      "delayed_execution": { "recalled": 109, "total": 117, "rate": 0.932 }
+    },
+    "localization": {
+      "overall_em_i": 0.987,
+      "overall_iou_h": 0.979,
+      "by_pattern": {
+        "full_hijack": { "n": 450, "em_i": 0.998, "iou_h": 0.998 },
+        "partial_hijack": { "n": 208, "em_i": 0.986, "iou_h": 0.964 },
+        "delayed_execution": { "n": 117, "em_i": 0.949, "iou_h": 0.936 }
+      }
+    },
+    "step_metrics": {
+      "benign": { "precision": 0.996, "recall": 0.991, "f1": 0.994, "support": 7048 },
+      "injection_point": { "precision": 0.976, "recall": 0.987, "f1": 0.981, "support": 775 },
+      "hijacked": { "precision": 0.976, "recall": 0.991, "f1": 0.983, "support": 1755 },
+      "failed_injection": { "precision": 1.0, "recall": 1.0, "f1": 1.0, "support": 218 }
+    },
+    "domain_summary": {
+      "banking": { "n": 317, "recall": 0.955, "false_alarm_rate": 0.005, "f1": 0.973 },
+      "coding": { "n": 382, "recall": 0.973, "false_alarm_rate": 0.031, "f1": 0.971 },
+      "email": { "n": 343, "recall": 0.987, "false_alarm_rate": 0.005, "f1": 0.990 },
+      "medical": { "n": 376, "recall": 1.0, "false_alarm_rate": 0.0, "f1": 1.0 },
+      "web": { "n": 304, "recall": 1.0, "false_alarm_rate": 0.039, "f1": 0.981 }
+    }
+  },
+  "test_streaming": {
+    "total_attacked_trajectories": 775,
+    "online_overall_recall": 0.985,
+    "instant_first_hijack_recall": 0.964,
+    "within_1_step_recall": 0.982,
+    "retroactive_entry_point_em_at_halt": 0.981,
+    "mean_detection_delay_steps": 0.024,
+    "mean_downstream_steps_saved": 2.14,
+    "total_hijacked_actions_intercepted": 1728,
+    "total_downstream_steps_saved": 1633,
+    "by_pattern": {
+      "full_hijack": {
+        "n": 450,
+        "instant_first_hijack_recall": 0.984,
+        "online_overall_recall": 0.998,
+        "retroactive_entry_exact_match": 0.993,
+        "mean_downstream_steps_saved": 2.41
+      },
+      "partial_hijack": {
+        "n": 208,
+        "instant_first_hijack_recall": 0.962,
+        "online_overall_recall": 0.986,
+        "retroactive_entry_exact_match": 0.980,
+        "mean_downstream_steps_saved": 2.05
+      },
+      "delayed_execution": {
+        "n": 117,
+        "instant_first_hijack_recall": 0.889,
+        "online_overall_recall": 0.932,
+        "retroactive_entry_exact_match": 0.936,
+        "mean_downstream_steps_saved": 1.22
+      }
+    }
+  }
+}
